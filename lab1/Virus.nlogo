@@ -17,6 +17,7 @@ turtles-own [
   immune-check
   old-weeks
   live-check
+  child
 ]
 
 to building-draw
@@ -45,8 +46,10 @@ to go  ;; Шаг
      set old-weeks old-weeks + 1
      check-old
    ]
-   ask healthy [ born ]
-   ask immune [ born ]
+   if (count turtles < MAX_PEOPLE)[
+     ask healthy [ born ]
+     ask immune [ born ]
+   ]
    update-globals
    do-plots
    set total-weeks total-weeks + 1
@@ -55,15 +58,17 @@ end
 
 to check-old
   set live-check random-float 1
-  if live-check * (54 * 1500) < old-weeks
+  if live-check * (54 * 1500000) < old-weeks
   [terminate]
 end
 
 to born
-  if (random-float 1) * 5 * 1500 < 1
-  [ask n-of 1 patches with [pcolor  = black]
+  if (count turtles < MAX_PEOPLE) and (old-weeks > (random-float 20) * 1500 * (child + 1)) and ((random 1) < 0.7 - child * 0.15)
+  [ set child child + 1
+    ask n-of 1 patches with [pcolor  = black]
      [ sprout-healthy 1
-      [ set color green 
+      [ set color green
+        set child 0 
         set old-weeks 0]]]
 end
 
@@ -74,12 +79,14 @@ to setup-agents  ;;  Установите начальное число аген
   
   ask n-of (INIT_PEOPLE - INIT_INFECTED) patches with [pcolor  = black]
      [ sprout-healthy 1
-      [ set color green 
+      [ set color green
+        set child 0 
         set old-weeks 0]]
       
   ask n-of INIT_INFECTED patches with [pcolor = black]
     [ sprout-infected 1
       [ set color red
+        set child 0
         set old-weeks 0
         set sickness DURATION ] ]
       
@@ -185,7 +192,7 @@ to do-plots
 end
   
 to pop-check
-  if INIT_PEOPLE < INIT_INFECTED
+  if (INIT_PEOPLE < INIT_INFECTED) or (INIT_PEOPLE > MAX_PEOPLE)
     [ user-message (word "Cannot create SICK person more ALL person.")
       stop ]
 end
@@ -241,7 +248,7 @@ INIT_INFECTED
 INIT_INFECTED
 1
 1000
-1
+243
 1
 1
 NIL
@@ -256,7 +263,7 @@ DURATION
 DURATION
 2
 1500
-12
+1204
 1
 1
 NIL
@@ -271,7 +278,7 @@ INFECTIOUSNESS
 INFECTIOUSNESS
 0
 100
-0
+69
 1
 1
 %
@@ -286,7 +293,7 @@ CHANCE-RECOVERY
 CHANCE-RECOVERY
 0
 100
-100
+77
 1
 1
 %
@@ -324,10 +331,10 @@ PENS
 "Имунированые" 1.0 0 -13791810 true "" ""
 
 BUTTON
-13
-223
-76
-256
+20
+261
+83
+294
 Init
 setup
 NIL
@@ -341,10 +348,10 @@ NIL
 1
 
 BUTTON
-79
-224
-142
-257
+86
+262
+149
+295
 Run
 go
 T
@@ -385,7 +392,7 @@ MONITOR
 226
 409
 Immune%
-(count immune)/(count turtles)
+100 * (count immune)/(count turtles)
 17
 1
 11
@@ -396,10 +403,25 @@ MONITOR
 226
 462
 Infected%
-(count infected)/(count turtles)
+100 * (count infected)/(count turtles)
 17
 1
 11
+
+SLIDER
+14
+213
+186
+246
+MAX_PEOPLE
+MAX_PEOPLE
+100
+2000
+1250
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
